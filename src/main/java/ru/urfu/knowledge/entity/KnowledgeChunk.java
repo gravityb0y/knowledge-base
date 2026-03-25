@@ -9,8 +9,6 @@ import lombok.Setter;
 @Builder
 public class KnowledgeChunk {
 
-    private String id;
-
     private String content;
 
     private String sourceType;

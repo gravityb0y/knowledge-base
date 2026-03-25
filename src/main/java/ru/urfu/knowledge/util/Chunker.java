@@ -28,7 +28,7 @@ public class Chunker {
                     List<String> newChunk = new ArrayList<>();
                     int count = 0;
                     for (int i = currentChunk.size() - 1; i >= 0 && count < overlap; i--) {
-                        newChunk.add(0, currentChunk.get(i));
+                        newChunk.addFirst(currentChunk.get(i));
                         count++;
                     }
                     currentChunk = newChunk;

@@ -72,7 +72,6 @@ public class FileProcessorService implements ProcessorService {
             for (int i = 0; i < chunks.size(); i++) {
                 String chunk = chunks.get(i);
                 result.add(KnowledgeChunk.builder()
-                        .id(fileName + "_" + i)
                         .chunkIndex(i)
                         .content(chunk)
                         .title(title)
