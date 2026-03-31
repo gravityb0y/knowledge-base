@@ -16,6 +16,18 @@ public class WeaviateConfiguration {
     @Value("${weaviate.collection.name}")
     private String collectionName;
 
+    @Value("${weaviate.http.host}")
+    private String httpHost;
+
+    @Value("${weaviate.http.port}")
+    private Integer httpPort;
+
+    @Value("${weaviate.grpc.host}")
+    private String grpcHost;
+
+    @Value("${weaviate.grpc.port}")
+    private Integer grpcPort;
+
     @Value("${ollama.api-endpoint}")
     private String apiEndpoint;
 
@@ -26,10 +38,10 @@ public class WeaviateConfiguration {
     public WeaviateClient client() throws IOException {
         Config config = Config.of(fn -> fn
                 .scheme("http")
-                .httpHost("192.168.1.118")
-                .httpPort(8080)
-                .grpcHost("192.168.1.118")
-                .grpcPort(50051)
+                .httpHost(httpHost)
+                .httpPort(httpPort)
+                .grpcHost(grpcHost)
+                .grpcPort(grpcPort)
         );
 
         WeaviateClient client = new WeaviateClient(config);

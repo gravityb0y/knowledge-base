@@ -1,6 +1,6 @@
 package ru.urfu.knowledge.mapper;
 
-import ru.urfu.knowledge.entity.KnowledgeChunk;
+import ru.urfu.knowledge.dto.KnowledgeChunk;
 
 import java.util.HashMap;
 import java.util.Map;

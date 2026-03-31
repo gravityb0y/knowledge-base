@@ -1,4 +1,4 @@
-package ru.urfu.knowledge.entity;
+package ru.urfu.knowledge.dto;
 
 import lombok.Builder;
 import lombok.Getter;

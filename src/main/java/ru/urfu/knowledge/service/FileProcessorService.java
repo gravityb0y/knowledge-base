@@ -6,7 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.urfu.knowledge.config.DocsConfiguration;
-import ru.urfu.knowledge.entity.KnowledgeChunk;
+import ru.urfu.knowledge.dto.KnowledgeChunk;
+import ru.urfu.knowledge.util.ChunkUtils;
 import ru.urfu.knowledge.util.Chunker;
 import ru.urfu.knowledge.util.FileUtils;
 import ru.urfu.knowledge.util.StringPipeline;
@@ -53,19 +54,19 @@ public class FileProcessorService implements ProcessorService {
     private List<KnowledgeChunk> processFile(File file) {
         try {
             String rawText = tika.parseToString(file);
-            String title = extractTitle(rawText);
+            String title = ChunkUtils.extractTitle(rawText);
             String fileName = file.getName();
             String text = StringPipeline.of(rawText)
-                    .then(this::removeGarbageSections)
-                    .then(this::removeContentHeader)
-                    .then(this::removeTableOfContents)
-                    .then(this::normalizeText)
+                    .then(ChunkUtils::removeGarbageSections)
+                    .then(ChunkUtils::removeContentHeader)
+                    .then(ChunkUtils::removeTableOfContents)
+                    .then(ChunkUtils::normalizeText)
                     .build();
             String hash = FileUtils.calculateFileHash(file);
             logger.info("Файл с названием: {}, Содержимое: {}", fileName, text.substring(0, Math.min(500, text.length())));
             List<String> chunks = Chunker.chunkText(text, 150, 2)
                     .stream()
-                    .filter(this::isValidChunk)
+                    .filter(ChunkUtils::isValidChunk)
                     .toList();
             List<KnowledgeChunk> result = new LinkedList<>();
 
@@ -96,49 +97,6 @@ public class FileProcessorService implements ProcessorService {
                 || name.endsWith(".pdf")
                 || name.endsWith(".ppt")
                 || name.endsWith(".pps");
-    }
-
-    private String normalizeText(String text) {
-        return text
-                .replaceAll("-\\n", "")
-                .replaceAll("\\n+", " ")
-                .replaceAll("\\s+", " ")
-                .trim();
-    }
-
-    private String removeGarbageSections(String text) {
-        text = text.replaceAll("(?is)(содержание|оглавление).*?(введение)", "Введение");
-        text = text.replaceAll("(?is)история изменений.*?(введение)", "Введение");
-        return text;
-    }
-
-    private String removeTableOfContents(String text) {
-        return text.replaceAll("(?m)^.*\\.{3,}\\s*\\d+.*$", "");
-    }
-
-    private String removeContentHeader(String text) {
-        return text.replaceAll("(?i)содержание", "");
-    }
-
-    private boolean isValidChunk(String chunk) {
-        String lower = chunk.toLowerCase();
-        return lower.length() > 50  // не слишком маленький
-                && !lower.contains("содержание")
-                && !lower.contains("история изменений");
-    }
-
-    private String extractTitle(String text) {
-        String[] lines = text.split("\\n");
-
-        for (String line : lines) {
-            line = line.trim();
-
-            if (line.length() > 10 && line.length() < 200) {
-                return line;
-            }
-        }
-
-        return "Без названия";
     }
 
     private String getFileExtension(File file) {
