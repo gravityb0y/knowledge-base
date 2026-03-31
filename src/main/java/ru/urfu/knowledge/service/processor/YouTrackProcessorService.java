@@ -1,9 +1,10 @@
-package ru.urfu.knowledge.service;
+package ru.urfu.knowledge.service.processor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.urfu.knowledge.dto.KnowledgeChunk;
+import ru.urfu.knowledge.service.YouTrackService;
 import ru.urfu.knowledge.util.ChunkUtils;
 
 import java.util.List;

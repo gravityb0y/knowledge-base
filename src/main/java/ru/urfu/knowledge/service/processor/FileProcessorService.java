@@ -1,4 +1,4 @@
-package ru.urfu.knowledge.service;
+package ru.urfu.knowledge.service.processor;
 
 import org.apache.tika.Tika;
 import org.slf4j.Logger;

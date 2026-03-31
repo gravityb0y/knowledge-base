@@ -1,4 +1,4 @@
-package ru.urfu.knowledge.service;
+package ru.urfu.knowledge.service.processor;
 
 import ru.urfu.knowledge.dto.KnowledgeChunk;
 
