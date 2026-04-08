@@ -18,7 +18,6 @@ public class StartupRunner {
         return args -> {
 //            List<KnowledgeChunk> chunks = processorService.process();
 //            weaviateService.saveChunks(chunks);
-            log.info(weaviateService.generateAnswer("что такое ИТС?"));
         };
     }
 
