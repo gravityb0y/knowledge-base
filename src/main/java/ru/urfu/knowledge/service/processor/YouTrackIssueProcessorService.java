@@ -10,7 +10,7 @@ import ru.urfu.knowledge.util.ChunkUtils;
 import java.util.List;
 
 @Service
-public class YouTrackProcessorService implements ProcessorService {
+public class YouTrackIssueProcessorService implements ProcessorService {
 
     private final YouTrackService youTrackService;
 
@@ -18,7 +18,7 @@ public class YouTrackProcessorService implements ProcessorService {
     private String baseUrl;
 
     @Autowired
-    public YouTrackProcessorService(YouTrackService youTrackService) {
+    public YouTrackIssueProcessorService(YouTrackService youTrackService) {
         this.youTrackService = youTrackService;
     }
 
