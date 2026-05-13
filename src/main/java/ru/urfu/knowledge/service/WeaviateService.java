@@ -159,6 +159,16 @@ public class WeaviateService {
         log.info("Удалены старые чанки sourceName={}: {}", sourceName, result);
     }
 
+    public void deleteBySourceId(String sourceId) {
+        CollectionHandle<Map<String, Object>> collection = weaviateClient.collections.use(collectionName);
+
+        var result = collection.data.deleteMany(
+                Filter.property("sourceId").eq(sourceId)
+        );
+
+        log.info("Удалены старые чанки sourceId={}: {}", sourceId, result);
+    }
+
     public void deleteDocuments() {
         deleteBySourceName("docs");
     }
