@@ -3,6 +3,7 @@ package ru.urfu.knowledge.service;
 import io.weaviate.client6.v1.api.WeaviateClient;
 import io.weaviate.client6.v1.api.collections.CollectionHandle;
 import io.weaviate.client6.v1.api.collections.data.InsertManyResponse;
+import io.weaviate.client6.v1.api.collections.generate.GenerativeObject;
 import io.weaviate.client6.v1.api.collections.generate.GenerativeProvider;
 import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
@@ -11,10 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.urfu.knowledge.dto.KnowledgeChunk;
+import ru.urfu.knowledge.dto.QuestionResponse;
+import ru.urfu.knowledge.dto.SourceDto;
 import ru.urfu.knowledge.mapper.ChunkMapper;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class WeaviateService {
@@ -54,26 +58,83 @@ public class WeaviateService {
         log.info("Вставка чанков завершена");
     }
 
-    public String generateAnswer(String question) {
+    public QuestionResponse generateAnswer(String question) {
         CollectionHandle<Map<String, Object>> collection = weaviateClient.collections.use(collectionName);
-        var response = collection.generate.nearText(question, q -> q.limit(5).returnProperties("title", "content"),
+
+        var response = collection.generate.nearText(
+                question,
+                q -> q
+                        .limit(5)
+                        .returnProperties(
+                                "title",
+                                "content",
+                                "sourceType",
+                                "sourceName",
+                                "url",
+                                "chunkIndex"
+                        ),
                 g -> g.groupedTask("""
-                                Ты — эксперт по учебным информационным системам УрФУ.
-                                
-                                Твоя задача — ответить на вопрос пользователя, используя ТОЛЬКО предоставленный контекст.
-                                
-                                Правила:
-                                1. Отвечай строго на русском языке
-                                2. НЕ используй слова на других языках
-                                3. НЕ придумывай информацию, которой нет в контексте
-                                4. Если информации недостаточно — напиши: "Недостаточно данных"
-                                5. Отвечай кратко и по делу (3–5 предложений)
-                                
-                                Вопрос:
-                                """ + question,
-                        p -> p.generativeProvider(GenerativeProvider.ollama(o -> o.
-                                apiEndpoint(apiEndpoint)
-                                .model(generativeModel)))));
-        return response.generative().text();
+                    Ты — эксперт по учебным информационным системам УрФУ.
+                    Твоя задача — ответить на вопрос пользователя, используя ТОЛЬКО предоставленный контекст.
+
+                    Правила:
+                    1. Отвечай строго на русском языке
+                    2. Не используй сведения, которых нет в контексте
+                    3. Если информации недостаточно — напиши: "Недостаточно данных"
+                    4. Отвечай кратко и по делу
+                    5. Не упоминай, что тебе был предоставлен контекст
+
+                    Вопрос пользователя:
+                    """ + question,
+                        p -> p.generativeProvider(
+                                GenerativeProvider.ollama(o -> o
+                                        .apiEndpoint(apiEndpoint)
+                                        .model(generativeModel)
+                                )
+                        )
+                )
+        );
+
+        String answer = response.generative() == null || response.generative().text() == null
+                ? "Недостаточно данных"
+                : response.generative().text();
+
+        List<SourceDto> sources = response.objects().stream()
+                .map(GenerativeObject::properties)
+                .filter(Objects::nonNull)
+                .map(this::toSourceDto)
+                .toList();
+
+        return QuestionResponse.builder()
+                .answer(answer)
+                .sources(sources)
+                .build();
+    }
+
+    private SourceDto toSourceDto(Map<String, Object> properties) {
+        return SourceDto.builder()
+                .title(asString(properties.get("title")))
+                .sourceType(asString(properties.get("sourceType")))
+                .sourceName(asString(properties.get("sourceName")))
+                .url(asString(properties.get("url")))
+                .fragment(cutFragment(asString(properties.get("content"))))
+                .build();
+    }
+
+    private String asString(Object value) {
+        return value == null ? null : value.toString();
+    }
+
+    private String cutFragment(String content) {
+        if (content == null) {
+            return null;
+        }
+
+        int maxLength = 500;
+        if (content.length() <= maxLength) {
+            return content;
+        }
+
+        return content.substring(0, maxLength) + "...";
     }
 }
