@@ -1,5 +1,6 @@
 package ru.urfu.knowledge.service;
 
+import io.weaviate.client6.v1.api.collections.query.Filter;
 import io.weaviate.client6.v1.api.WeaviateClient;
 import io.weaviate.client6.v1.api.collections.CollectionHandle;
 import io.weaviate.client6.v1.api.collections.data.InsertManyResponse;
@@ -136,5 +137,33 @@ public class WeaviateService {
         }
 
         return content.substring(0, maxLength) + "...";
+    }
+
+    public void deleteBySourceType(String sourceType) {
+        CollectionHandle<Map<String, Object>> collection = weaviateClient.collections.use(collectionName);
+
+        var result = collection.data.deleteMany(
+                Filter.property("sourceType").eq(sourceType)
+        );
+
+        log.info("Удалены старые чанки sourceType={}: {}", sourceType, result);
+    }
+
+    public void deleteBySourceName(String sourceName) {
+        CollectionHandle<Map<String, Object>> collection = weaviateClient.collections.use(collectionName);
+
+        var result = collection.data.deleteMany(
+                Filter.property("sourceName").eq(sourceName)
+        );
+
+        log.info("Удалены старые чанки sourceName={}: {}", sourceName, result);
+    }
+
+    public void deleteDocuments() {
+        deleteBySourceName("docs");
+    }
+
+    public void deleteYouTrack() {
+        deleteBySourceName("youtrack");
     }
 }
